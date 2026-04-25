@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Lexend -->
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        // Check for saved dark mode preference
+        function initTheme() {
+            if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+        initTheme();
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Lexend', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'brutal': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'brutal-white': '4px 4px 0px 0px rgba(255,255,255,1)',
+                        'brutal-lg': '8px 8px 0px 0px rgba(0,0,0,1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Light Mode */
+        body { background-color: #f0f0f0; color: #000; transition: background-color 0.3s; }
+        .brutal-card { background: white; border: 3px solid black; box-shadow: 8px 8px 0px 0px rgba(0,0,0,1); }
+        .brutal-btn { border: 2px solid black; box-shadow: 4px 4px 0px 0px rgba(0,0,0,1); transition: all 0.1s; }
+
+        /* Dark Mode (Cyber-Brutalist) */
+        .dark body { 
+            background-color: #0D0221; 
+            background-image: radial-gradient(#1A1B41 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: #fff; 
+        }
+        .dark .brutal-card { 
+            background: #150050; 
+            border: 3px solid #00F5FF; 
+            box-shadow: 8px 8px 0px 0px rgba(0, 245, 255, 1); 
+        }
+        .dark .brutal-btn { 
+            border: 2px solid #FF00E5; 
+            box-shadow: 4px 4px 0px 0px rgba(255, 0, 229, 1); 
+        }
+        .dark input, .dark select {
+            background-color: #1a1a1a !important;
+            color: #00F5FF !important;
+            border-color: #fff !important;
+        }
+        .dark input::placeholder { color: #888 !important; }
+        .dark a.text-black { color: #FFDE03 !important; }
+        
+        /* Force Black Text on Bright Buttons in Dark Mode */
+        .dark .bg-\[\#FFDE03\], .dark .bg-white, .dark .bg-yellow-400, .dark .bg-\[\#10b981\], .dark .bg-green-500 {
+            color: #000 !important;
+        }
+        
+        /* Custom Neon Scrollbar */
+        .dark ::-webkit-scrollbar { width: 10px; }
+        .dark ::-webkit-scrollbar-track { background: #0D0221; }
+        .dark ::-webkit-scrollbar-thumb { background: #FF00E5; border: 2px solid #0D0221; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #00F5FF; }
+
+        /* Dashboard Specific Dark Mode */
+        .dark aside { background-color: #0D0221 !important; border-color: #FF00E5 !important; }
+        .dark .sidebar-btn { background-color: #1a1a1a; border-color: #fff; color: white; }
+        .dark .sidebar-btn.active { background-color: #FF00E5; box-shadow: 4px 4px 0px 0px rgba(0, 245, 255, 1); color: black !important; }
+        .dark .text-gray-500 { color: #00F5FF !important; font-weight: 900; }
+        .dark .text-gray-600 { color: #ddd !important; }
+        
+        .dark nav { border-color: #FF00E5; background-color: #0D0221 !important; }
+        .dark footer { border-color: #00F5FF; background-color: #0D0221; }
+        
+        .brutal-btn:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px 0px rgba(0,0,0,1); }
+        .dark .brutal-btn:active { box-shadow: 0px 0px 0px 0px rgba(255, 0, 229, 1); }
+    </style>
+</head>
+<body class="font-sans">
+    <nav class="bg-[#FFDE03] dark:bg-[#0D0221] border-b-8 border-black dark:border-[#00F5FF] sticky top-0 z-50 transition-all">
+        <div class="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
+            <!-- Brand Logo -->
+            <a href="/" class="text-3xl font-black uppercase italic tracking-tighter text-black dark:text-[#00F5FF] hover:skew-x-[-12deg] transition-transform flex items-center gap-2">
+                <span class="bg-black dark:bg-[#00F5FF] text-[#FFDE03] dark:text-black px-2 py-0 border-2 border-black dark:border-[#00F5FF]">S</span>
+                SHORTEN.IO
+            </a>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center gap-6">
+                <!-- Theme Toggle -->
+                <button onclick="toggleDarkMode()" class="brutal-btn p-2 bg-white dark:bg-black shadow-brutal dark:shadow-[4px_4px_0px_0px_rgba(0,245,255,1)] active:shadow-none">
+                    <span id="theme-icon">🌓</span>
+                </button>
+                <div id="nav-links" class="flex gap-2 items-end">
+                    <!-- Links injected here as 'Tags' -->
+                </div>
+            </div>
+
+            <!-- Mobile Menu Toggle -->
+            <div class="flex md:hidden items-center gap-4">
+                <button onclick="toggleMobileMenu()" class="p-2 border-4 border-black bg-white text-black font-black uppercase text-xs">Menu</button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="hidden fixed inset-0 z-[100] bg-[#FFDE03] dark:bg-[#0D0221] border-8 border-black dark:border-[#FF00E5] flex-col p-12 overflow-y-auto">
+            <div class="flex justify-between items-start mb-20">
+                <h2 class="text-4xl font-black italic dark:text-[#FFDE03]">NAVIGATION</h2>
+                <button onclick="toggleMobileMenu()" class="text-5xl font-black dark:text-white">&times;</button>
+            </div>
+            <nav id="mobile-nav-links" class="flex flex-col gap-8 text-5xl font-black uppercase italic tracking-tighter mb-12 dark:text-[#00F5FF]">
+                <!-- Links -->
+            </nav>
+
+            <!-- Giant Theme Toggle -->
+            <button onclick="toggleDarkMode(); toggleMobileMenu();" class="mt-auto w-full p-6 border-4 border-black dark:border-white bg-white dark:bg-zinc-800 text-black dark:text-white font-black uppercase text-2xl shadow-brutal dark:shadow-brutal-white active:shadow-none transition-all">
+                🌓 CHANGE THEME
+            </button>
+        </div>
+    </nav>
+
+    <main class="min-h-[80vh]">
+        <%- body %>
+    </main>
+
+    <!-- Cool Brutalist Footer -->
+    <footer class="bg-black text-white border-t-8 border-black">
+        <!-- Scrolling Status Bar -->
+        <div class="bg-[#10b981] text-black py-2 border-b-4 border-black overflow-hidden whitespace-nowrap">
+            <div class="inline-block animate-marquee font-black uppercase text-sm tracking-widest">
+                SYSTEM STATUS: ALL SYSTEMS OPERATIONAL • SERVER LOAD: 12% • REDIRECTION SPEED: 48MS • BUILT FOR SPEED • 
+                SYSTEM STATUS: ALL SYSTEMS OPERATIONAL • SERVER LOAD: 12% • REDIRECTION SPEED: 48MS • BUILT FOR SPEED • 
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto p-12 md:p-20 grid grid-cols-1 md:grid-cols-3 gap-16">
+            <!-- Brand -->
+            <div>
+                <h3 class="text-4xl font-black uppercase tracking-tighter mb-4 italic">SHORTEN.IO</h3>
+                <p class="font-bold text-gray-400 max-w-xs leading-relaxed">
+                    The world's most aggressive URL shortener. No tracking limits. No boring designs.
+                </p>
+            </div>
+
+            <!-- Developer -->
+            <div class="flex flex-col gap-3 font-black uppercase text-sm italic">
+                <h4 class="text-gray-500 mb-2 not-italic tracking-widest text-[10px]">DEVELOPED BY</h4>
+                <p class="text-2xl text-white not-italic font-black tracking-tighter">Devang Sethi</p>
+                <a href="https://devangsethi.vercel.app" target="_blank" class="text-[#00F5FF] hover:text-[#FFDE03] transition-colors underline decoration-2 underline-offset-4">Portfolio</a>
+            </div>
+
+            <!-- Resources -->
+            <div class="flex flex-col gap-3 font-black uppercase text-sm italic">
+                <h4 class="text-gray-500 mb-2 not-italic tracking-widest text-[10px]">RESOURCES</h4>
+                <a href="/privacy" class="hover:text-[#FFDE03] transition-colors">Privacy Policy</a>
+                <a href="/terms" class="hover:text-[#FFDE03] transition-colors">Terms of Brutality</a>
+                <a href="https://github.com/sethidevang" target="_blank" class="text-gray-400 hover:text-white transition-colors mt-2 lowercase font-bold">github.com/sethidevang</a>
+            </div>
+        </div>
+
+        <div class="p-8 text-center border-t-2 border-white/10 font-bold text-xs text-gray-500 uppercase tracking-widest">
+            &copy; 2024 SHORTEN.IO • <span class="text-white">POWERED BY PURE ADRENALINE</span>
+        </div>
+    </footer>
+
+    <style>
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+            display: inline-block;
+            animation: marquee 20s linear infinite;
+        }
+    </style>
+
+    <script>
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            }
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+            document.body.classList.toggle('overflow-hidden');
+        }
+
+        function updateNav() {
+            const token = localStorage.getItem('token');
+            const navLinks = document.getElementById('nav-links');
+            const mobileNavLinks = document.getElementById('mobile-nav-links');
+            const btnBase = "px-6 py-2 border-2 border-black dark:border-white shadow-brutal dark:shadow-brutal-white hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all font-black text-xs uppercase tracking-widest";
+            
+            if (token) {
+                const links = `
+                    <a href="/dashboard" class="${btnBase} bg-white dark:bg-[#0D0221] text-black dark:text-[#00F5FF] mr-4 shadow-[4px_4px_0px_0px_rgba(0,245,255,1)]">Dashboard</a>
+                    <a href="/" class="${btnBase} bg-[#FF00E5] text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(0,245,255,1)]">+ NEW LINK</a>
+                `;
+                navLinks.innerHTML = links;
+                mobileNavLinks.innerHTML = `
+                    <a href="/dashboard" class="dark:text-[#00F5FF]">Dashboard</a>
+                    <a href="/" class="dark:text-[#00F5FF]">New Link</a>
+                    <a href="/privacy" class="dark:text-[#00F5FF]">Privacy</a>
+                    <a href="/terms" class="dark:text-[#00F5FF]">Terms</a>
+                    <button onclick="localStorage.removeItem('token'); window.location.reload();" class="text-left text-[#FF00E5] dark:text-[#FF00E5] font-black uppercase">Log Out</button>
+                `;
+            } else {
+                const links = `
+                    <a href="/login" class="${btnBase} bg-white text-black">Login</a>
+                    <a href="/register" class="${btnBase} bg-black text-white ml-4">JOIN NOW</a>
+                `;
+                navLinks.innerHTML = links;
+                mobileNavLinks.innerHTML = `
+                    <a href="/login" class="dark:text-[#00F5FF]">Login</a>
+                    <a href="/register" class="dark:text-[#00F5FF]">Join Now</a>
+                    <a href="/privacy" class="dark:text-[#00F5FF]">Privacy</a>
+                `;
+            }
+        }
+        updateNav();
+    </script>
+</body>
+</html>

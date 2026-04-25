@@ -1,0 +1,81 @@
+<div class="max-w-md mx-auto py-20 px-6">
+    <div class="brutal-card bg-white dark:bg-[#150050] p-10 relative">
+        <h2 class="text-6xl font-black uppercase italic tracking-tighter mb-10 leading-[0.8] space-y-2 text-black dark:text-black">
+            <span class="dark:bg-white dark:px-2 inline-block">WELCOME</span><br>
+            <span class="text-[#FF00E5] dark:bg-[#FF00E5] dark:text-black dark:px-2 inline-block mt-1">BACK.</span>
+        </h2>
+        
+        <form id="login-form" class="space-y-6">
+            <div>
+                <label class="block text-xs font-black uppercase tracking-widest mb-2 dark:text-[#00F5FF]">Your Email</label>
+                <input type="email" id="email" required class="w-full p-4 border-4 border-black dark:border-white bg-gray-50 dark:bg-black font-bold outline-none dark:text-white">
+            </div>
+            <div class="relative group">
+                <label class="block text-xs font-black uppercase tracking-widest mb-2 dark:text-[#00F5FF]">Password</label>
+                <input type="password" id="password" required class="w-full p-4 pr-14 border-4 border-black dark:border-white bg-gray-50 dark:bg-black font-bold outline-none dark:text-white focus:border-[#FF00E5] transition-all">
+                <button type="button" id="toggle-btn-password" onclick="togglePassword('password')" class="absolute right-2 bottom-2 w-10 h-10 flex items-center justify-center text-xl focus:outline-none focus:bg-[#FFDE03] dark:focus:bg-[#FF00E5] border-2 border-transparent focus:border-black transition-all">👁️</button>
+            </div>
+            <button type="submit" class="w-full bg-[#FFDE03] text-black border-4 border-black py-4 text-xl font-black uppercase shadow-brutal hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+                Enter Dashboard
+            </button>
+        </form>
+
+        <p class="mt-8 text-sm font-bold dark:text-gray-400">
+            New here? <a href="/register" class="text-blue-600 dark:text-[#FFDE03] underline decoration-4">Create a brutal account.</a>
+        </p>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div id="error-modal" class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="brutal-card bg-white dark:bg-[#150050] w-full max-w-sm p-10 text-center border-b-[12px] border-r-[12px] border-[#FF00E5] relative">
+        <div class="text-7xl mb-6">⚠️</div>
+        <h3 class="text-4xl font-black uppercase italic italic tracking-tighter mb-4 dark:text-white">ACCESS DENIED</h3>
+        <p id="error-message" class="font-bold text-gray-600 dark:text-[#00F5FF] mb-8 uppercase text-sm">Invalid credentials provided.</p>
+        <button onclick="closeErrorModal()" class="w-full bg-black text-white p-4 font-black uppercase text-xl shadow-[4px_4px_0px_0px_rgba(255,0,229,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">TRY AGAIN</button>
+    </div>
+</div>
+
+<script>
+    function togglePassword(id) {
+        const input = document.getElementById(id);
+        const btn = document.getElementById('toggle-btn-' + id);
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.innerText = '🙈';
+        } else {
+            input.type = 'password';
+            btn.innerText = '👁️';
+        }
+    }
+
+    function closeErrorModal() {
+        document.getElementById('error-modal').classList.add('hidden');
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const res = await fetch('/api/user/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await res.json();
+            if (data.token) {
+                localStorage.setItem('token', data.token);
+                window.location.href = '/dashboard';
+            } else {
+                document.getElementById('error-message').innerText = data.message || 'LOGIN FAILED. CHECK YOUR CREDENTIALS.';
+                document.getElementById('error-modal').classList.remove('hidden');
+            }
+        } catch (err) {
+            document.getElementById('error-message').innerText = 'SYSTEM OFFLINE. TRY LATER.';
+            document.getElementById('error-modal').classList.remove('hidden');
+        }
+    });
+</script>

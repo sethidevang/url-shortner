@@ -1,0 +1,702 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="flex flex-col md:flex-row min-h-screen bg-white dark:bg-[#0D0221]">
+    <!-- Sidebar (Hidden on Mobile) -->
+    <aside id="dashboard-sidebar"
+        class="hidden md:flex w-full md:w-72 bg-white dark:bg-[#0D0221] border-r-4 border-black dark:border-[#FF00E5] p-8 flex-col sticky top-0 md:h-screen z-40 transition-all">
+        <div class="mb-10 pb-6 border-b-2 border-dotted border-black dark:border-[#00F5FF]">
+            <a href="/profile"
+                class="flex items-center gap-3 p-3 bg-black text-white font-black uppercase text-xs shadow-brutal hover:bg-[#FF00E5] transition-all">
+                👤 Manage Account
+            </a>
+        </div>
+
+        <div class="flex flex-col gap-4 mb-10">
+            <button onclick="openCreateModal()"
+                class="w-full bg-[#00F5FF] text-black border-4 border-black p-4 font-black uppercase shadow-brutal hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all text-sm">
+                + ADD NEW LINK
+            </button>
+        </div>
+
+        <div class="flex justify-between items-center mb-6">
+            <h4 class="text-xs font-black uppercase tracking-widest text-gray-500 dark:text-[#00F5FF]">Library</h4>
+            <button onclick="toggleSidebar()" class="md:hidden text-2xl font-black">&times;</button>
+        </div>
+        <nav class="flex flex-col gap-3">
+            <button onclick="filterByProject(null)" id="btn-all"
+                class="sidebar-btn active flex items-center gap-3 p-3 font-bold border-2 border-black dark:border-white text-black dark:text-white shadow-brutal hover:bg-[#FFDE03] dark:hover:bg-[#00F5FF] dark:hover:text-black transition-all">
+                <span class="text-xl">📁</span> ALL LINKS
+            </button>
+            <div id="sidebar-projects" class="flex flex-col gap-3 mt-4">
+                <!-- Projects injected here -->
+            </div>
+            <button onclick="showProjectModal()"
+                class="mt-8 border-2 border-dashed border-black bg-white !text-black p-3 font-bold text-sm hover:border-[#FF00E5] hover:border-solid hover:shadow-[0px_0px_10px_rgba(255,0,229,0.4)] dark:hover:border-[#00F5FF] dark:hover:shadow-[0px_0px_10px_rgba(0,245,255,0.4)] transition-all">
+                + NEW FOLDER
+            </button>
+        </nav>
+
+        <div class="mt-auto pt-8 border-t-2 border-dotted border-black dark:border-[#00F5FF]">
+            <div class="flex justify-between items-center mb-4">
+                <h4 class="text-xs font-black uppercase tracking-widest text-gray-500">Domains</h4>
+                <button onclick="openDomainGuide()"
+                    class="text-[10px] bg-black text-white px-2 py-1 font-black uppercase shadow-brutal hover:bg-[#00F5FF] hover:text-black transition-all">Setup
+                    Guide</button>
+            </div>
+            <div id="sidebar-domains" class="flex flex-col gap-2">
+                <!-- Domains -->
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-6 md:p-12 overflow-x-hidden">
+        <header class="flex justify-between items-center mb-12">
+            <div>
+                <button onclick="toggleSidebar()"
+                    class="md:hidden mb-4 bg-black text-white px-4 py-2 font-black uppercase text-xs shadow-brutal active:shadow-none">📁
+                    Open Library</button>
+                <h1 id="current-view-title"
+                    class="text-3xl md:text-5xl font-black uppercase italic tracking-tighter leading-none">
+                    <span id="title-text"
+                        class="bg-[#FFDE03] dark:bg-[#FF00E5] px-3 inline-block text-black">Dashboard</span>
+                </h1>
+            </div>
+            <button onclick="logout()"
+                class="brutal-btn bg-red-400 !text-black px-6 py-2 font-bold uppercase text-sm">Log Out</button>
+        </header>
+
+        <!-- Quick Shorten Section -->
+        <div class="brutal-card bg-[#3D5AFE] p-8 mb-12">
+            <form id="dashboard-shorten-form" class="space-y-6">
+                <!-- Main Input -->
+                <div class="flex flex-col md:flex-row gap-4">
+                    <input type="url" id="link-url" placeholder="PASTE YOUR LONG URL HERE..." required
+                        class="flex-1 p-4 border-4 border-black dark:border-[#00F5FF] bg-white dark:bg-black text-black dark:text-white font-bold placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:border-[#FFDE03] dark:focus:border-[#FF00E5]">
+                    <button type="submit"
+                        class="bg-[#FFDE03] !text-black border-4 border-black px-8 py-4 font-black uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+                        Shorten Now ⚡
+                    </button>
+                    <button type="button" onclick="toggleAdvanced()"
+                        class="bg-white dark:bg-black !text-black dark:!text-[#00F5FF] border-4 border-black dark:border-[#00F5FF] px-6 py-4 font-bold uppercase hover:bg-gray-100 dark:hover:bg-[#00F5FF] dark:hover:!text-black transition-all">
+                        Settings
+                    </button>
+                </div>
+
+                <!-- Advanced Settings (Hidden by default) -->
+                <div id="advanced-options" class="hidden space-y-6 pt-6 border-t-4 border-black/20">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div
+                            class="brutal-card bg-white dark:bg-[#0D0221] p-4 border-4 border-black dark:border-[#00F5FF]">
+                            <label
+                                class="block text-xs font-black uppercase tracking-widest mb-2 text-black dark:text-black">
+                                <span class="bg-[#FFDE03] dark:bg-[#FF00E5] px-2 inline-block">Target Domain</span>
+                            </label>
+                            <select id="link-domain" onchange="updatePreview()" style="color-scheme: dark;"
+                                class="w-full p-2 border-2 border-black dark:border-[#00F5FF] bg-white dark:bg-[#0D0221] text-black dark:text-[#00F5FF] font-black outline-none">
+                                <option value="">shorten.io (Default)</option>
+                            </select>
+                        </div>
+                        <div
+                            class="brutal-card bg-white dark:bg-[#0D0221] p-4 border-4 border-black dark:border-[#00F5FF]">
+                            <label
+                                class="block text-xs font-black uppercase tracking-widest mb-2 text-black dark:text-black">
+                                <span class="bg-[#FFDE03] dark:bg-[#FF00E5] px-2 inline-block">Assign to Folder</span>
+                            </label>
+                            <select id="link-project" style="color-scheme: dark;"
+                                class="w-full p-2 border-2 border-black dark:border-[#00F5FF] bg-white dark:bg-[#0D0221] text-black dark:text-[#00F5FF] font-black outline-none">
+                                <option value="">General (No Folder)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="brutal-card bg-white dark:bg-[#0D0221] p-4 border-4 border-black dark:border-[#00F5FF]">
+                        <label
+                            class="block text-xs font-black uppercase tracking-widest mb-2 text-black dark:text-black">
+                            <span class="bg-[#FFDE03] dark:bg-[#FF00E5] px-2 inline-block">Custom Slug (Optional)</span>
+                        </label>
+                        <input id="link-slug" type="text" oninput="updatePreview()" placeholder="my-awesome-link"
+                            class="w-full p-2 border-2 border-black dark:border-[#00F5FF] bg-white dark:bg-[#0D0221] text-black dark:text-[#00F5FF] font-bold outline-none placeholder-gray-400 dark:placeholder-gray-500">
+                    </div>
+
+                </div>
+            </form>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            <div class="brutal-card bg-white dark:bg-[#150050] p-6">
+                <p class="text-xs font-black uppercase text-gray-500 dark:text-[#00F5FF] mb-2">Total Links</p>
+                <h3 id="stat-total-urls" class="text-4xl font-black text-black dark:text-[#FFDE03]">0</h3>
+            </div>
+            <div class="brutal-card bg-white dark:bg-[#150050] p-6">
+                <p class="text-xs font-black uppercase text-gray-500 dark:text-[#00F5FF] mb-2">Total Clicks</p>
+                <h3 id="stat-total-clicks" class="text-4xl font-black text-black dark:text-[#FFDE03]">0</h3>
+            </div>
+            <div class="brutal-card bg-white dark:bg-[#150050] p-6">
+                <p class="text-xs font-black uppercase text-gray-500 dark:text-[#00F5FF] mb-2">Real Visitors</p>
+                <h3 id="stat-real-clicks" class="text-4xl font-black text-black dark:text-[#FFDE03]">0</h3>
+            </div>
+            <div class="brutal-card bg-white dark:bg-[#150050] p-6">
+                <p class="text-xs font-black uppercase text-gray-500 dark:text-[#00F5FF] mb-2">Bot Clicks</p>
+                <h3 id="stat-bot-clicks" class="text-4xl font-black text-black dark:text-[#FFDE03]">0</h3>
+            </div>
+        </div>
+
+        <!-- Analytics Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <div class="brutal-card bg-white dark:bg-[#150050] p-8">
+                <h4
+                    class="font-black uppercase text-sm mb-6 border-b-2 border-dotted border-black dark:border-[#00F5FF] pb-2 dark:text-[#00F5FF]">
+                    Devices</h4>
+                <canvas id="deviceChart" height="150"></canvas>
+            </div>
+            <div class="brutal-card bg-white dark:bg-[#150050] p-8">
+                <h4
+                    class="font-black uppercase text-sm mb-6 border-b-2 border-dotted border-black dark:border-[#00F5FF] pb-2 dark:text-[#00F5FF]">
+                    Top Locations</h4>
+                <canvas id="countryChart" height="150"></canvas>
+            </div>
+        </div>
+
+        <!-- Links Table -->
+        <div class="brutal-card bg-white dark:bg-[#150050] overflow-hidden">
+            <div
+                class="p-4 bg-black dark:bg-[#00F5FF] text-white dark:text-black font-black uppercase text-sm tracking-widest">
+                Active Links</div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b-4 border-black dark:border-[#00F5FF] text-black dark:text-[#FFDE03]">
+                            <th class="p-4 font-black uppercase text-[10px] tracking-widest">Short URL</th>
+                            <th class="p-4 font-black uppercase text-[10px] tracking-widest">Project</th>
+                            <th class="p-4 font-black uppercase text-[10px] tracking-widest">Destination</th>
+                            <th class="p-4 font-black uppercase text-[10px] tracking-widest text-center">Clicks</th>
+                            <th class="p-4 font-black uppercase text-[10px] tracking-widest text-center">QR</th>
+                        </tr>
+                    </thead>
+                    <tbody id="links-tbody">
+                        <!-- Rows -->
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination Bar -->
+            <div id="pagination-controls"
+                class="p-6 border-t-4 border-black dark:border-[#00F5FF] flex justify-between items-center bg-gray-50 dark:bg-zinc-900">
+                <span id="page-info"
+                    class="font-black text-xs uppercase tracking-widest text-gray-500 dark:text-[#00F5FF]">Page 1 of
+                    1</span>
+                <div class="flex gap-4">
+                    <button id="prev-btn" onclick="changePage(-1)"
+                        class="brutal-btn bg-white dark:bg-[#00F5FF] !text-black px-4 py-2 text-xs font-black disabled:opacity-30 disabled:cursor-not-allowed">PREV</button>
+                    <button id="next-btn" onclick="changePage(1)"
+                        class="brutal-btn bg-[#FFDE03] dark:bg-[#FF00E5] !text-black px-4 py-2 text-xs font-black disabled:opacity-30 disabled:cursor-not-allowed">NEXT</button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Domain Setup Guide Modal -->
+<div id="domain-guide-modal"
+    class="hidden fixed inset-0 z-[250] bg-black/90 flex items-center justify-center p-4 md:p-8">
+    <div
+        class="brutal-card bg-white dark:bg-[#150050] w-full max-w-xl p-8 md:p-12 relative overflow-y-auto max-h-screen">
+        <button onclick="closeDomainGuide()" class="absolute top-4 right-4 text-4xl font-black">&times;</button>
+
+        <h2 class="text-4xl font-black uppercase italic mb-8 dark:text-[#FFDE03]">CONNECT YOUR DOMAIN</h2>
+
+        <div class="space-y-8">
+            <div class="border-l-8 border-black dark:border-[#00F5FF] pl-6">
+                <p class="text-xs font-black text-gray-500 uppercase mb-2">Step 01</p>
+                <h4 class="text-xl font-black mb-2">Add a CNAME Record</h4>
+                <p class="text-sm font-bold text-gray-600 dark:text-gray-300 leading-relaxed">
+                    Log in to your domain provider (e.g., Godaddy, Namecheap) and create a <span
+                        class="bg-black text-white px-2">CNAME</span> record for your subdomain (like <span
+                        class="italic">links</span>.yourbrand.com).
+                </p>
+            </div>
+
+            <div class="brutal-card bg-[#150050] p-8 border-r-8 border-b-8 border-[#00F5FF]">
+                <h3 class="text-3xl font-black uppercase italic text-white leading-none mb-4">
+                    Destroys in <br>
+                    <span class="dark:!bg-[#FFDE03] dark:!text-black dark:px-2 inline-block mt-2"
+                        style="background-color: #FFDE03; color: black;">48 HOURS.</span>
+                </h3>
+                <p class="font-bold text-gray-400 text-sm uppercase tracking-tighter">DNS propagation can take time. If
+                    it doesn't work instantly, wait for the global update.</p>
+            </div>
+
+            <div class="border-l-8 border-black dark:border-[#FF00E5] pl-6">
+                <p class="text-xs font-black text-gray-500 uppercase mb-2">Step 02</p>
+                <h4 class="text-xl font-black mb-2">Point it to our Engine</h4>
+                <p class="text-sm font-bold text-gray-600 dark:text-gray-300 mb-4">Set the value/target of your CNAME
+                    to:</p>
+                <div class="flex gap-2">
+                    <input id="cname-target" type="text" readonly value="cname.shorten.io"
+                        class="flex-1 p-3 border-4 border-black bg-gray-100 dark:bg-black font-black text-xs">
+                    <button onclick="copyCNAME()"
+                        class="bg-[#FFDE03] text-black px-4 py-2 font-black border-4 border-black shadow-brutal active:shadow-none transition-all">COPY</button>
+                </div>
+            </div>
+
+            <div class="bg-black text-white p-6 italic text-sm">
+                💡 <span class="font-black uppercase">Pro Tip:</span> DNS changes can take anywhere from <span
+                    class="dark:text-[#00F5FF] font-black">1 to 24 hours</span> to "glow" across the internet. Be
+                patient, it's worth it!
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Create Link Modal -->
+<div id="create-modal"
+    class="hidden fixed inset-0 z-[300] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div
+        class="brutal-card bg-white dark:bg-[#150050] w-full max-w-xl p-8 md:p-12 relative overflow-y-auto max-h-[90vh]">
+        <button onclick="closeCreateModal()" class="absolute top-4 right-4 text-4xl font-black">&times;</button>
+
+        <h2 class="text-4xl font-black uppercase italic mb-8 dark:text-[#FFDE03]">CREATE GHOST LINK</h2>
+
+        <form onsubmit="createLinkModal(event)" class="space-y-8">
+            <div class="brutal-card bg-gray-100 dark:bg-black p-6 border-black border-4">
+                <label class="block text-xs font-black uppercase tracking-widest mb-3 dark:text-[#00F5FF]">Destination
+                    URL</label>
+                <input id="modal-link-url" type="url" placeholder="https://..."
+                    class="w-full p-4 border-4 border-black dark:border-white bg-white dark:bg-black font-bold text-lg outline-none focus:border-[#FFDE03]"
+                    required>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="brutal-card bg-gray-100 dark:bg-black p-6">
+                    <label
+                        class="block text-xs font-black uppercase tracking-widest mb-3 dark:text-[#00F5FF]">Slug</label>
+                    <input id="modal-link-slug" type="text" oninput="updateModalPreview()" placeholder="slug"
+                        class="w-full p-4 border-4 border-black dark:border-white bg-white dark:bg-black font-bold outline-none focus:border-[#FFDE03]">
+                </div>
+                <div class="brutal-card bg-gray-100 dark:bg-black p-6">
+                    <label
+                        class="block text-xs font-black uppercase tracking-widest mb-3 dark:text-[#00F5FF]">Domain</label>
+                    <select id="modal-link-domain" onchange="updateModalPreview()"
+                        class="w-full p-4 border-4 border-black dark:border-white bg-white dark:bg-black font-black outline-none focus:border-[#FFDE03]">
+                        <option value="">shorten.io</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="brutal-card bg-[#FFDE03] p-6 border-black border-4">
+                <p class="text-[10px] font-black uppercase text-black/60 mb-2">Final Link Preview</p>
+                <p id="modal-link-preview" class="text-xl md:text-2xl font-black text-black">shorten.io/...</p>
+            </div>
+
+            <button type="submit"
+                class="w-full bg-[#00F5FF] text-black border-4 border-black p-6 text-2xl font-black uppercase shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+                BOOM. SHORTEN IT. ⚡
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Project Modal (New Folder) -->
+<div id="project-modal"
+    class="hidden fixed inset-0 z-[300] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="brutal-card bg-white dark:bg-[#150050] w-full max-w-md p-8 md:p-10 relative">
+        <button onclick="closeProjectModal()" class="absolute top-4 right-4 text-3xl font-black">&times;</button>
+        <h3 class="text-3xl font-black uppercase italic mb-8 dark:text-[#00F5FF]">NEW FOLDER</h3>
+        <form onsubmit="createProject(event)" class="space-y-6">
+            <input type="text" id="project-name" placeholder="PROJECT NAME..." required
+                class="w-full p-4 border-4 border-black dark:border-white bg-white dark:bg-black font-black outline-none focus:border-[#FFDE03]">
+            <button type="submit"
+                class="w-full bg-[#FFDE03] text-black border-4 border-black p-4 font-black uppercase shadow-brutal hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+                CREATE FOLDER 📁
+            </button>
+        </form>
+    </div>
+</div>
+
+<div id="link-modal"
+    class="hidden fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div
+        class="brutal-card bg-white dark:bg-[#150050] w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-10 relative">
+        <button onclick="closeLinkModal()" class="absolute top-4 right-4 text-3xl font-black">&times;</button>
+
+        <div class="flex flex-col md:flex-row gap-8 items-center md:items-start">
+            <!-- QR Section -->
+            <div class="w-full md:w-1/2 flex flex-col items-center">
+                <div class="relative w-full">
+                    <img id="modal-qr" src="" class="w-full border-4 border-black dark:border-[#00F5FF] shadow-brutal">
+                </div>
+                <button onclick="shareLink()"
+                    class="w-full mt-4 bg-[#FF00E5] text-white p-4 font-black uppercase text-sm border-4 border-black shadow-brutal active:shadow-none translate-x-[2px] translate-y-[2px] transition-all">Share
+                    Link</button>
+            </div>
+
+            <!-- Details Section -->
+            <div class="w-full md:w-1/2">
+                <h2 id="modal-short-id" class="text-3xl md:text-4xl font-black italic mb-2 dark:text-[#FFDE03]">
+                    /Loading...</h2>
+                <p id="modal-long-url" class="text-xs font-bold text-gray-500 mb-6 break-all line-clamp-2 italic"></p>
+
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="p-3 bg-gray-100 dark:bg-[#0D0221] border-2 border-black dark:border-[#00F5FF]">
+                        <p class="text-[10px] font-black uppercase text-gray-400 dark:text-[#00F5FF]">Total Clicks</p>
+                        <p id="modal-clicks" class="text-xl font-black text-black dark:text-[#FFDE03]">0</p>
+                    </div>
+                    <div class="p-3 bg-gray-100 dark:bg-[#0D0221] border-2 border-black dark:border-[#00F5FF]">
+                        <p class="text-[10px] font-black uppercase text-gray-400 dark:text-[#00F5FF]">Created</p>
+                        <p id="modal-date" class="text-xs font-black text-black dark:text-white">--/--/--</p>
+                    </div>
+                </div>
+
+                <button onclick="copyToClipboard()"
+                    class="w-full bg-[#00F5FF] text-black p-4 font-black uppercase text-sm border-4 border-black shadow-brutal active:shadow-none translate-x-[2px] translate-y-[2px] transition-all">Copy
+                    URL</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .sidebar-btn.active {
+        background-color: #FFDE03;
+        transform: translate(-2px, -2px);
+        box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 1);
+    }
+
+    /* Force light text on form fields in dark mode */
+    .dark #link-url,
+    .dark #link-slug,
+    .dark #link-domain,
+    .dark #link-project {
+        color: #00F5FF !important;
+        background-color: #0D0221 !important;
+    }
+
+    .dark #link-url::placeholder,
+    .dark #link-slug::placeholder {
+        color: #6b7280 !important;
+    }
+</style>
+
+<script>
+    let currentProjectId = null;
+    let charts = { device: null, country: null };
+
+    let currentPage = 1;
+    let totalPages = 1;
+
+    // --- MASTER INITIALIZATION ---
+    async function loadDashboard(projectId = currentProjectId, page = currentPage) {
+        currentProjectId = projectId;
+        currentPage = page;
+        const token = localStorage.getItem('token');
+        if (!token) return window.location.href = '/login';
+
+        try {
+            await Promise.allSettled([
+                fetchStats(projectId, page),
+                fetchLinks(projectId, page),
+                fetchProjects(),
+                fetchUserDomains()
+            ]);
+        } catch (err) {
+            console.error('ENGINE FAILURE:', err);
+        }
+    }
+
+    // --- DATA PIPELINE ---
+    async function fetchLinks(projectId = null, page = 1) {
+        const token = localStorage.getItem('token');
+        let url = `/api/url/my-urls?page=${page}`;
+        if (projectId) url += `&projectId=${projectId}`;
+
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.status === 401) return window.location.href = '/login';
+
+        const links = await res.json();
+        renderLinks(links);
+    }
+
+    async function fetchStats(projectId = null, page = 1) {
+        const token = localStorage.getItem('token');
+        let url = `/api/dashboard/stats?page=${page}`;
+        if (projectId) url += `&projectId=${projectId}`;
+
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) return;
+        const data = await res.json();
+
+        const stats = data.summary;
+        totalPages = stats.totalPages;
+
+        document.getElementById('stat-total-urls').innerText = stats.totalUrls || 0;
+        document.getElementById('stat-total-clicks').innerText = stats.totalClicks || 0;
+        document.getElementById('stat-real-clicks').innerText = stats.realClicks || 0;
+        document.getElementById('stat-bot-clicks').innerText = stats.botClicks || 0;
+
+        // Update Pagination Bar
+        document.getElementById('page-info').innerText = `Page ${stats.currentPage} of ${stats.totalPages}`;
+        document.getElementById('prev-btn').disabled = stats.currentPage <= 1;
+        document.getElementById('next-btn').disabled = stats.currentPage >= stats.totalPages;
+
+        // Render charts from API response
+        if (data.deviceData && data.countryData) {
+            renderCharts(data.deviceData, data.countryData);
+        }
+    }
+
+    function renderCharts(deviceData, countryData) {
+        if (charts.device) { charts.device.destroy(); charts.device = null; }
+        if (charts.country) { charts.country.destroy(); charts.country = null; }
+
+        const isDark = document.documentElement.classList.contains('dark');
+        const textColor = isDark ? '#00F5FF' : '#000';
+        const gridColor = isDark ? 'rgba(0,245,255,0.1)' : 'rgba(0,0,0,0.1)';
+
+        const deviceCtx = document.getElementById('deviceChart');
+        const countryCtx = document.getElementById('countryChart');
+        if (!deviceCtx || !countryCtx) return;
+
+        if (deviceData.length === 0) {
+            deviceCtx.parentElement.innerHTML += '<p class="text-center text-gray-400 font-black uppercase text-xs mt-4">No data yet</p>';
+        } else {
+            charts.device = new Chart(deviceCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: deviceData.map(d => d.device),
+                    datasets: [{ data: deviceData.map(d => d.count), backgroundColor: ['#FF00E5', '#00F5FF', '#FFDE03', '#3D5AFE'], borderWidth: 0 }]
+                },
+                options: { plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { weight: 'bold' } } } }, cutout: '65%' }
+            });
+        }
+
+        if (countryData.length === 0) {
+            countryCtx.parentElement.innerHTML += '<p class="text-center text-gray-400 font-black uppercase text-xs mt-4">No data yet</p>';
+        } else {
+            charts.country = new Chart(countryCtx, {
+                type: 'bar',
+                data: {
+                    labels: countryData.map(c => c.country),
+                    datasets: [{ label: 'Clicks', data: countryData.map(c => c.count), backgroundColor: '#FFDE03', borderColor: '#000', borderWidth: 2 }]
+                },
+                options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: textColor, font: { weight: 'bold' } }, grid: { color: gridColor } }, x: { ticks: { color: textColor, font: { weight: 'bold' } }, grid: { display: false } } } }
+            });
+        }
+    }
+
+    function changePage(step) {
+        const next = currentPage + step;
+        if (next >= 1 && next <= totalPages) {
+            loadDashboard(currentProjectId, next);
+        }
+    }
+
+    async function fetchProjects() {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/project', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) return;
+
+        const projects = await res.json();
+        const sidebar = document.getElementById('sidebar-projects');
+        const dropdown = document.getElementById('link-project');
+        if (!sidebar || !dropdown) return;
+
+        sidebar.innerHTML = '';
+        dropdown.innerHTML = '<option value="">General (No Folder)</option>';
+
+        projects.forEach(p => {
+            const btn = document.createElement('button');
+            btn.className = `sidebar-btn flex items-center gap-3 p-3 font-bold border-2 border-black dark:border-white text-black dark:text-white shadow-brutal hover:bg-[#FFDE03] dark:hover:bg-[#00F5FF] dark:hover:text-black transition-all ${currentProjectId === p.id ? 'active bg-[#FFDE03] dark:bg-[#00F5FF] dark:!text-black' : ''}`;
+            btn.onclick = () => filterByProject(p.id, p.name);
+            btn.innerHTML = `<span>📁 ${p.name.toUpperCase()}</span>`;
+            sidebar.appendChild(btn);
+
+            const opt = document.createElement('option');
+            opt.value = p.id; opt.textContent = p.name;
+            dropdown.appendChild(opt);
+        });
+    }
+
+    async function fetchUserDomains() {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/domain', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!res.ok) return;
+
+        const domains = await res.json();
+        const selectors = [document.getElementById('link-domain'), document.getElementById('modal-link-domain')];
+        selectors.forEach(select => {
+            if (!select) return;
+            select.innerHTML = `<option value="">${select.id.includes('modal') ? 'shorten.io' : 'shorten.io (Default)'}</option>`;
+            domains.forEach(d => {
+                if (d.isVerified) {
+                    const opt = document.createElement('option');
+                    opt.value = d.id; opt.textContent = d.domainName;
+                    select.appendChild(opt);
+                }
+            });
+        });
+    }
+
+    // --- UI RENDERING ---
+    function renderLinks(links) {
+        const tbody = document.getElementById('links-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        if (!links || links.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center font-black uppercase text-gray-400">No links found</td></tr>';
+            return;
+        }
+
+        links.forEach(link => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-black/10 dark:border-[#00F5FF]/20 hover:bg-gray-50 dark:hover:bg-white/5 transition-all cursor-pointer';
+            tr.onclick = () => showLinkDetails(link.id);
+
+            const clicks = link.clickCount || 0;
+            const domain = link.Domain ? link.Domain.domainName : 'shorten.io';
+            const fullUrl = `http://${domain}/${link.shortId}`;
+
+            tr.innerHTML = `
+                <td class="p-4"><div class="flex flex-col"><span class="font-black text-sm text-blue-600 dark:text-[#00F5FF] underline">${domain}/${link.shortId}</span><span class="text-[10px] text-gray-500 dark:text-gray-400 truncate max-w-[200px]">${link.redirectUrl}</span></div></td>
+                <td class="p-4"><span class="px-2 py-1 bg-black dark:bg-[#FF00E5] text-white text-[10px] font-black uppercase">${link.projectId ? 'FOLDER' : 'GENERAL'}</span></td>
+                <td class="p-4 text-xs font-bold text-gray-500 dark:text-gray-300 italic truncate max-w-[150px]">${link.redirectUrl}</td>
+                <td class="p-4 text-center"><span class="font-black text-black dark:text-black bg-[#FFDE03] px-3 py-1 text-sm border-2 border-black">${clicks}</span></td>
+                <td class="p-4 text-center">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(fullUrl)}" class="w-10 h-10 mx-auto border-2 border-black dark:border-white">
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // --- ACTIONS ---
+    async function createLink(e) {
+        if (e) e.preventDefault();
+        const payload = {
+            redirectUrl: document.getElementById('link-url').value,
+            customId: document.getElementById('link-slug').value,
+            projectId: document.getElementById('link-project').value || null,
+            domainId: document.getElementById('link-domain').value || null
+        };
+
+        const res = await fetch('/api/url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            document.getElementById('link-url').value = '';
+            document.getElementById('link-slug').value = '';
+            loadDashboard(currentProjectId);
+        } else {
+            const data = await res.json();
+            alert(data.error || 'Failed to create link');
+        }
+    }
+
+    async function createProject(e) {
+        e.preventDefault();
+        const name = document.getElementById('project-name').value;
+        const res = await fetch('/api/project', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+            body: JSON.stringify({ name })
+        });
+        if (res.ok) { closeProjectModal(); document.getElementById('project-name').value = ''; loadDashboard(); }
+    }
+
+    async function showLinkDetails(id) {
+        const res = await fetch(`/api/url/${id}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+        const link = await res.json();
+        const domain = link.Domain ? link.Domain.domainName : 'shorten.io';
+        const fullUrl = `http://${domain}/${link.shortId}`;
+
+        document.getElementById('modal-short-id').innerText = `/${link.shortId}`;
+        document.getElementById('modal-long-url').innerText = link.redirectUrl;
+        document.getElementById('modal-clicks').innerText = link.Visits ? link.Visits.length : 0;
+        document.getElementById('modal-date').innerText = new Date(link.createdAt).toLocaleDateString();
+        document.getElementById('modal-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(fullUrl)}`;
+
+        window.currentModalFullUrl = fullUrl;
+        window.currentModalLinkId = id;
+        document.getElementById('link-modal').classList.remove('hidden');
+    }
+
+    // --- HELPERS ---
+    function logout() { localStorage.removeItem('token'); window.location.href = '/login'; }
+    function toggleAdvanced() { document.getElementById('advanced-options').classList.toggle('hidden'); }
+    function updatePreview() {
+        const slug = document.getElementById('link-slug').value || '...';
+        const domainSelect = document.getElementById('link-domain');
+        const domain = domainSelect.value ? domainSelect.options[domainSelect.selectedIndex].text : 'shorten.io';
+        document.getElementById('link-preview').innerHTML = `${domain}/<span class="${slug === '...' ? 'opacity-30' : ''}">${slug}</span>`;
+    }
+    function updateModalPreview() {
+        const slug = document.getElementById('modal-link-slug').value || '...';
+        const domainSelect = document.getElementById('modal-link-domain');
+        const domain = domainSelect.value ? domainSelect.options[domainSelect.selectedIndex].text : 'shorten.io';
+        document.getElementById('modal-link-preview').innerHTML = `${domain}/<span class="${slug === '...' ? 'opacity-30' : ''}">${slug}</span>`;
+    }
+
+    function openCreateModal() { document.getElementById('create-modal').classList.remove('hidden'); }
+    function closeCreateModal() { document.getElementById('create-modal').classList.add('hidden'); }
+    function showProjectModal() { document.getElementById('project-modal').classList.remove('hidden'); }
+    function closeProjectModal() { document.getElementById('project-modal').classList.add('hidden'); }
+    function closeLinkModal() { document.getElementById('link-modal').classList.add('hidden'); }
+    function copyToClipboard() { navigator.clipboard.writeText(window.currentModalFullUrl); alert('COPIED! 📋'); }
+
+    function filterByProject(id, name) {
+        currentProjectId = id;
+        document.getElementById('btn-all').classList.toggle('active', !id);
+        const titleText = document.getElementById('title-text');
+        if (titleText) titleText.textContent = name || 'Dashboard';
+        loadDashboard(id);
+    }
+    function toggleSidebar() { document.getElementById('dashboard-sidebar').classList.toggle('hidden'); }
+    function openDomainGuide() { document.getElementById('domain-guide-modal').classList.remove('hidden'); }
+    function closeDomainGuide() { document.getElementById('domain-guide-modal').classList.add('hidden'); }
+
+    function copyCNAME() {
+        const target = document.getElementById('cname-target');
+        navigator.clipboard.writeText(target.value);
+        alert('CNAME Copied! ✅');
+    }
+
+    function shareLink() {
+        const url = window.currentModalFullUrl;
+        if (navigator.share) {
+            navigator.share({ title: 'Short Link', url });
+        } else {
+            navigator.clipboard.writeText(url);
+            alert('Link copied! 📋');
+        }
+    }
+
+    async function createLinkModal(e) {
+        e.preventDefault();
+        const payload = {
+            redirectUrl: document.getElementById('modal-link-url').value,
+            customId: document.getElementById('modal-link-slug').value || undefined,
+            domainId: document.getElementById('modal-link-domain').value || null
+        };
+        const res = await fetch('/api/url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            closeCreateModal();
+            document.getElementById('modal-link-url').value = '';
+            document.getElementById('modal-link-slug').value = '';
+            loadDashboard(currentProjectId);
+        } else {
+            const d = await res.json();
+            alert(d.error || 'Failed to create link');
+        }
+    }
+
+    // --- START ---
+    document.getElementById('dashboard-shorten-form').addEventListener('submit', createLink);
+    loadDashboard();
+</script>
